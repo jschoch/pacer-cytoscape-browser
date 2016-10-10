@@ -11,6 +11,8 @@ set :bind, '0.0.0.0'
 set :public_folder, File.dirname(__FILE__) + '/static'
 set :static, true
 
+group_type = :type
+
 get '/' do
   first_item = g.v.first.properties
   content_type  :json
@@ -29,19 +31,21 @@ end
 get '/n' do
   first_item = g.vertex(params[:id])
   sub = first_item.both_e.both_v.subgraph
-  nodes = sub.v.to_a.map{|v| 
-    #size = v.both_e.count
+  nodes = sub.v.to_a.map{ |v| 
     size = v[:all_degrees] || 1
+    id = v.getId
     scaled_size = ((size * 20) * 0.1)+20 
-    {
-      id: v.getId,
-      p: v.properties, 
+
+      {
+      id: id,
+      p: v.properties.merge({id: id}), 
       size: size,
       scaled_size: scaled_size,
       label: "#{v[:name]} (#{size})",
       faveColor: '#6FB1FC'
       }
-    }
+  }
+
   edges = sub.e.to_a.map{|e| 
     {
       id: e.getId,
