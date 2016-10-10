@@ -135,34 +135,45 @@ function expand(source_id){
     console.log(data)
     eles = []
     $.each(data.nodes,function(i,n){
-      console.log(n.label,n.scaled_size)
+      console.log(n.label,n.scaled_size,n)
       eles.push({ group: "nodes",data: n})
+      if (n.p.type_freq == null){
+        console.log( "no freq");
+        return null
+      }
+      var tf = n.p.type_freq
+      $.each(JSON.parse(tf),function(k,v){
+        add_freq_types(eles,n,k,v)
+      });
     })
    $.each(data.edges,function(i,n){
-      //eles.push({ group: "edges",data: n,classes: ['autorotate','label_background']})
       eles.push({ group: "edges",data: n,classes: 'autorotate'})
     })
    eles =  cy.add(eles)
    cy.layout(lhash[layout]);
    eles.on('cxttap', bind_nodes);
-   //console.log('thing',eles[0])
    add_qtip(eles);
-   //eles.qtip({
-    //content: "ugh",
-    //position: {
-      //my: 'top center',
-      //at: 'bottom center'
-    //},
-    //style: {
-      //classes: 'qtip-bootstrap',
-      //tip: {
-        //width: 16,
-        //height: 8
-      //}
-    //}
-//
-    //});
   });
+}
+
+function add_freq_types(eles,source,key,val){
+  var target = "freq_type:" + key + ":" + source.id
+  eles.push( {
+    group: "nodes",
+    data: {
+      id: target,
+      size: 20,
+      scaled_size: 20,
+      faveColor: 'red',
+      label: key + '(' + val + ')'
+      }
+    ,classes: 'freq_type'
+   })
+  eles.push(
+   { 
+    group: "edges",
+    data: { source: source.id, target: target,label: "FT" }
+   })
 }
 
 function add_qtip(eles){
@@ -250,6 +261,16 @@ cy = cytoscape({
           }
     },
     {
+      selector: '.type_freq',
+      style: {
+        //'label': 'data(label)',
+        //'target-arrow-shape': 'triangle',
+        //'opacity': 0.666,
+        //'curve-style': 'bezier'
+        'background-color': 'data(faveColor)'
+      }
+    },
+    {
       selector: ':selected',
       css: {
         'background-color': 'black',
@@ -262,18 +283,9 @@ cy = cytoscape({
   
   elements: {
     nodes: [
-      //{ data: { id: 'a', parent: 'b' }, position: { x: 215, y: 85 } },
-      //{ data: { id: 'b' } },
-      //{ data: { id: 'c', parent: 'b' }, position: { x: 300, y: 85 } },
-      //{ data: { id: 'd' }, position: { x: 215, y: 175 } },
-      //{ data: { id: 'e' } },
-      //{ data: { id: 'f', parent: 'e' }, position: { x: 300, y: 175 } }
       {data: { id: 8,name: "root",size: 1,scaled_size: 20,faveColor: '#6FB1FC'}}
     ],
     edges: [
-      //{ data: { id: 'ad', source: 'a', target: 'd' } },
-      //{ data: { id: 'eb', source: 'e', target: 'b' } }
-      
     ]
   },
   
