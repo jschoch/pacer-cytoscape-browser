@@ -125,22 +125,10 @@ function dolay(lay){
   cy.layout(lhash[lay]);
 }
 
-function add(source_id){
-  var eles = cy.add([
-    { group: "nodes", data: { id: source_id+ "0" }},
-  { group: "nodes", data: { id: source_id + "1" }},
-  { group: "edges", data: { id: source_id + "e0", source: source_id + "0", target: source_id, label: 'arf' }, classes: 'autorotate'},
-  { group: "edges", data: { id: source_id + "e1", source: source_id + "1", target: source_id }}
-  ]);
-  //console.log('added', eles);
-  cy.layout(lhash[layout]);
-  expand(source_id)
-  eles.on('cxttap', function(e){
-     var ele = e.cyTarget;
-     add(ele.id())
-     console.log('clicked ' + ele.id());
-  });
-};
+function bind_nodes(e){
+  var ele = e.cyTarget;
+  expand(ele.id());
+}
 
 function expand(source_id){
   $.get( "/n?id="+source_id, function( data ) {
@@ -151,17 +139,56 @@ function expand(source_id){
       eles.push({ group: "nodes",data: n})
     })
    $.each(data.edges,function(i,n){
+      //eles.push({ group: "edges",data: n,classes: ['autorotate','label_background']})
       eles.push({ group: "edges",data: n,classes: 'autorotate'})
     })
    eles =  cy.add(eles)
    cy.layout(lhash[layout]);
-   eles.on('cxttap', function(e){
-     var ele = e.cyTarget;
-     expand(ele.id())
-     console.log('clicked ' + ele.id());
-    });
+   eles.on('cxttap', bind_nodes);
+   //console.log('thing',eles[0])
+   add_qtip(eles);
+   //eles.qtip({
+    //content: "ugh",
+    //position: {
+      //my: 'top center',
+      //at: 'bottom center'
+    //},
+    //style: {
+      //classes: 'qtip-bootstrap',
+      //tip: {
+        //width: 16,
+        //height: 8
+      //}
+    //}
+//
+    //});
   });
 }
+
+function add_qtip(eles){
+  qt = {
+    content: '!',
+    position: {
+      my: 'top center',
+      at: 'bottom center'
+    },
+    style: {
+      classes: 'qtip-bootstrap',
+      tip: {
+        width: 16,
+        height: 8
+      }
+    }
+  }
+  $.each(eles,function(i,n){
+    props = n._private.data.p
+    if (props){
+      qt.content = JSON.stringify(props,null,"<br/>");
+      n.qtip(qt)
+      console.log("props",props,qt,n);
+    }
+  });
+};
 
 $(function(){ // on dom ready
 
@@ -179,8 +206,12 @@ cy = cytoscape({
         'text-valign': 'center',
         'label': 'data(label)',
         'text-halign': 'center',
+        'text-outline-width': 2,
+        'text-outline-color': 'data(faveColor)',
+        'background-color': 'data(faveColor)',
         'height': 'data(scaled_size)',
-        'width': 'data(scaled_size)'
+        'width': 'data(scaled_size)',
+        'color': '#fff'
       }
     },
     {
@@ -200,15 +231,24 @@ cy = cytoscape({
       css: {
         'label': 'data(label)',
         'target-arrow-shape': 'triangle',
+        'opacity': 0.666,
         'curve-style': 'bezier'
       }
     },
     {
-              selector: '.autorotate',
-              style: {
-                'edge-text-rotation': 'autorotate'
-              }
-            },
+      selector: '.autorotate',
+        style: {
+          'edge-text-rotation': 'autorotate',
+          //'text-background-opacity': 1,
+          //'text-background-color': '#ccc',
+          //'text-background-shape': 'roundrectangle',
+          //'text-border-color': '#000',
+          //'text-border-width': 1,
+          'text-outline-color': '#ccc',
+          'text-outline-width': 3,
+          'text-border-opacity': 1
+          }
+    },
     {
       selector: ':selected',
       css: {
@@ -228,7 +268,7 @@ cy = cytoscape({
       //{ data: { id: 'd' }, position: { x: 215, y: 175 } },
       //{ data: { id: 'e' } },
       //{ data: { id: 'f', parent: 'e' }, position: { x: 300, y: 175 } }
-      {data: { id: 8,name: "root",size: 1,scaled_size: 20}}
+      {data: { id: 8,name: "root",size: 1,scaled_size: 20,faveColor: '#6FB1FC'}}
     ],
     edges: [
       //{ data: { id: 'ad', source: 'a', target: 'd' } },
@@ -242,10 +282,7 @@ cy = cytoscape({
     padding: 5
   }
 });
-  cy.$('node').on('cxttap', function(e){
-     var ele = e.cyTarget;
-     expand(ele.id())
-     console.log('clicked ' + ele.id());
-  });
+  cy.$('node').on('cxttap',bind_nodes);
+  
   
 }); // on dom ready

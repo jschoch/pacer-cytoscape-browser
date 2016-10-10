@@ -4,7 +4,7 @@ require 'pacer'
 
 puts "loading pacer"
 g = Pacer.tg
-Pacer::GraphML.import(g,"./gd.graphml")
+Pacer::GraphML.import(g,"./gd2.graphml")
 puts "binding port"
 
 set :bind, '0.0.0.0'
@@ -29,7 +29,19 @@ end
 get '/n' do
   first_item = g.vertex(params[:id])
   sub = first_item.both_e.both_v.subgraph
-  nodes = sub.v.to_a.map{|v| {id: v.getId,p: v.properties}}
+  nodes = sub.v.to_a.map{|v| 
+    #size = v.both_e.count
+    size = v[:all_degrees] || 1
+    scaled_size = ((size * 20) * 0.1)+20 
+    {
+      id: v.getId,
+      p: v.properties, 
+      size: size,
+      scaled_size: scaled_size,
+      label: "#{v[:name]} (#{size})",
+      faveColor: '#6FB1FC'
+      }
+    }
   edges = sub.e.to_a.map{|e| 
     {
       id: e.getId,
