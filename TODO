@@ -1,8 +1,9 @@
-remove type_freq nodes on expand
-
-fix first node load
 
 add add root node input box
+
+add search input and center on first matched node
+
+add ability to load multiple graphs
 
 add toggle to turn all edges off
 

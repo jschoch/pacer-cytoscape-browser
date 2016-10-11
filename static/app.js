@@ -128,9 +128,7 @@ function dolay(lay){
 function bind_nodes(e){
   var ele = e.cyTarget;
   ele.data({_expanded: true});
-  
   expand(ele);
-  console.log("right click", ele);
 }
 
 function expand(ele){
@@ -139,7 +137,6 @@ function expand(ele){
   tfs.each(function(i,e){
     cy.remove(e);
   })
-  console.log("joy",tfs);
   $.get( "/n?id="+source_id, function( data ) {
     //console.log(data)
     eles = []
@@ -165,6 +162,23 @@ function expand(ele){
    add_qtip(eles);
   });
 }
+
+function add_node(id){
+  $.get( "/v?id="+id, function( data ) {
+    node = dress_node(data);
+    var x = cy.add(node);
+    x.on("cxttap",bind_nodes);
+  })
+}
+
+function dress_node(data){
+  var dn = default_node();
+  var t = {}
+  dn.data = $.extend(t,dn.data,data);
+  dn.data.faveColor = 'grey'
+  //console.log('dress node',dn,data)
+  return dn
+}
 function default_node(){
   return {
     group: "nodes",
@@ -187,19 +201,16 @@ function remove_freq_type(source,key){
     console.log("edge r",er)
   })
   var r = cy.remove(s)
-  console.log('trying to remove',s,r)
-  console.log('edges',edges);
 }
 
 function add_freq_types(eles,source,key,val){
   var target = "freq_type:" + key + ":" + source.id
   var node = default_node();
   node.data.id = target;
-  //node.data.label = target + "-|- " + key + '(' + val + ')';
   node.data.label = key + '(' + val + ')';
   node.classes = 'freq_type'
   node.data.faveColor= 'red'
-  console.log('node',node)
+  //console.log('node',node)
   eles.push( node)
 
   eles.push(
@@ -316,7 +327,7 @@ cy = cytoscape({
   
   elements: {
     nodes: [
-      {data: { id: 8,name: "root",size: 1,scaled_size: 20,faveColor: '#6FB1FC'}}
+      //{data: { id: 8,name: "root",size: 1,scaled_size: 20,faveColor: '#6FB1FC'}}
     ],
     edges: [
     ]
@@ -327,7 +338,10 @@ cy = cytoscape({
     padding: 5
   }
 });
-  cy.$('node').on('cxttap',bind_nodes);
+  var root_id = "tt1717152";
+  //var root_id = "8";
+  var root = add_node(root_id);
+  //cy.$('node').on('cxttap',bind_nodes);
   
   
 }); // on dom ready

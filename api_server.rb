@@ -21,10 +21,10 @@ get '/' do
 end
 
 get '/v' do
-  first_item = g.vertex(params[:id])
+  v = g.vertex(params[:id])
+  node = Gr.dress(v)
   content_type  :json
-  puts first_item
-  first_item.properties.to_json
+  node.to_json
 end
 
 
@@ -32,18 +32,7 @@ get '/n' do
   first_item = g.vertex(params[:id])
   sub = first_item.both_e.both_v.subgraph
   nodes = sub.v.to_a.map{ |v| 
-    size = v[:all_degrees] || 1
-    id = v.getId
-    scaled_size = ((size * 20) * 0.1)+20 
-
-      {
-      id: id,
-      p: v.properties.merge({id: id}), 
-      size: size,
-      scaled_size: scaled_size,
-      label: "#{v[:name]} (#{size})",
-      faveColor: '#6FB1FC'
-      }
+    Gr.dress(v)
   }
 
   edges = sub.e.to_a.map{|e| 
@@ -62,3 +51,19 @@ get '/n' do
   result.to_json
 end
 
+
+class Gr
+  def self.dress(node)
+    size = node[:all_degrees] || 1
+    id = node.getId
+    scaled_size = ((size * 20) * 0.1)+20
+      {
+      id: id,
+      p: node.properties.merge({id: id}),
+      size: size,
+      scaled_size: scaled_size,
+      label: "#{node[:name]} (#{size})",
+      faveColor: '#6FB1FC'
+      } 
+  end
+end
