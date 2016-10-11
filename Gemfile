@@ -1,1 +1,2 @@
 gem 'pacer'
+gem 'sinatra'
