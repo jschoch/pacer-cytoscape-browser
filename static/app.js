@@ -4,7 +4,7 @@ conopts = {
   name: 'concentric',
 
   fit: true, // whether to fit the viewport to the graph
-  padding: 30, // the padding on fit
+  padding: 10, // the padding on fit
   startAngle: 3 / 2 * Math.PI, // where nodes start in radians
   sweep: undefined, // how many radians should be between the first and last node (defaults to full circle)
   clockwise: true, // whether the layout should go clockwise (true) or counterclockwise/anticlockwise (false)
@@ -46,7 +46,8 @@ breadopts = {
   stop: undefined // callback on layoutstop
 };
 
-cosopts = {
+cosopts = {name: 'cose'}
+cosopts2 = {
   name: 'cose',
 
   // Called on `layoutready`
@@ -79,31 +80,31 @@ cosopts = {
   randomize: false,
 
   // Extra spacing between components in non-compound graphs
-  componentSpacing: 100,
+  componentSpacing: 10,
 
   // Node repulsion (non overlapping) multiplier
-  nodeRepulsion: function( node ){ return 400000; },
+  nodeRepulsion: function( node ){ return 800000; },
 
   // Node repulsion (overlapping) multiplier
-  nodeOverlap: 10,
+  nodeOverlap: 3,
 
   // Ideal edge (non nested) length
-  idealEdgeLength: function( edge ){ return 10; },
+  idealEdgeLength: function( edge ){ return 8; },
 
   // Divisor to compute edge forces
   edgeElasticity: function( edge ){ return 100; },
 
   // Nesting factor (multiplier) to compute ideal edge length for nested edges
-  nestingFactor: 5,
+  nestingFactor: 3,
 
   // Gravity force (constant)
-  gravity: 80,
+  gravity: 100,
 
   // Maximum number of iterations to perform
   numIter: 1000,
 
   // Initial temperature (maximum node displacement)
-  initialTemp: 200,
+  initialTemp: 300,
 
   // Cooling factor (how the temperature is reduced between consecutive iterations
   coolingFactor: 0.95,
@@ -115,7 +116,7 @@ cosopts = {
   useMultitasking: true
 };
 
-layout = "bread";
+layout = "cons";
 lhash = {"bread":breadopts,
          "cos": cosopts,
         "cons": conopts}
@@ -123,6 +124,11 @@ lhash = {"bread":breadopts,
 function dolay(lay){
   window.layout = lay
   cy.layout(lhash[lay]);
+}
+
+function start_root(){
+  var root = $("#root_node").val()
+  add_node(root);
 }
 
 function bind_expand_nodes(e){
@@ -139,6 +145,9 @@ function bind_expand_ft(e){
 }
 
 function expand(ele,filter_type){
+  if (ele.data().expanded == true){
+    return null
+  }
   var source_id = ele.id();
   var tfs = ele.neighborhood(".freq_type")
   tfs.each(function(i,e){
@@ -237,8 +246,6 @@ function add_freq_types(eles,source,key,val){
     group: "edges",
     data: { id: "e"+target,source: source.id, target: target,label: "FT" }
    })
-  console.log("pushed",eles);
-  //return eles;
 }
 
 function add_qtip(eles){
@@ -359,7 +366,7 @@ cy = cytoscape({
     padding: 5
   }
 });
-  var root_id = "8";
+  var root_id = $("#root_node").val();
   var root = add_node(root_id);
   //add_qtip([root]);
   //cy.layout(lhash[layout]);
