@@ -338,8 +338,8 @@ cy = cytoscape({
     padding: 5
   }
 });
-  var root_id = "tt1717152";
-  //var root_id = "8";
+  //var root_id = "tt1717152";
+  var root_id = "8";
   var root = add_node(root_id);
   //cy.$('node').on('cxttap',bind_nodes);
   
