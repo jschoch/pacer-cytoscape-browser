@@ -1,6 +1,7 @@
 require 'sinatra'
 require 'json'
 require 'pacer'
+require './config.rb'
 
 puts "loading pacer"
 g = Pacer.tg
@@ -10,6 +11,7 @@ puts "binding port"
 set :bind, '0.0.0.0'
 set :public_folder, File.dirname(__FILE__) + '/static'
 set :static, true
+@empty_graph = Pacer.tg
 
 group_type = :type
 
@@ -29,22 +31,37 @@ end
 
 
 get '/n' do
-  first_item = g.vertex(params[:id])
-  sub = first_item.both_e.both_v.subgraph
-  nodes = sub.v.to_a.map{ |v| 
-    Gr.dress(v)
-  }
+  puts "params: #{params}"
+  v = g.vertex(params["id"])
+  if params.has_key?("type")
+    puts "type: #{params["type"]}"
+    #r = v.both_e.both_v(Conf.group_type, params["type"])
+    r = v.both_e.both_v(type: params["type"])
+    puts "count: #{r.count}"
+    if r.count == 0
+      nodes = []
+      edges = []
+    else
+      sub = r.subgraph
+    end 
+  else
+    sub = v.both_e.both_v.subgraph
+  end
+  if nodes != []
+    nodes = sub.v.to_a.map{ |v| 
+      Gr.dress(v)
+    }
+  end
 
-  edges = sub.e.to_a.map{|e| 
-    {
-      id: e.getId,
-      label: e.label,
-      #p: 
-        #{
-          source: e.in_v.first.getId, 
-          target: e.out_v.first.getId
-        #}
-    }}
+  if edges != []
+    edges = sub.e.to_a.map{|e| 
+      {
+        id: e.getId,
+        label: e.label,
+        source: e.in_v.first.getId, 
+        target: e.out_v.first.getId
+      }}
+  end
   result = {nodes: nodes,edges: edges}
   content_type  :json
   #puts peers

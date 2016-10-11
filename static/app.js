@@ -125,40 +125,58 @@ function dolay(lay){
   cy.layout(lhash[lay]);
 }
 
-function bind_nodes(e){
+function bind_expand_nodes(e){
   var ele = e.cyTarget;
   ele.data({_expanded: true});
   expand(ele);
 }
+function bind_expand_ft(e){
+  var ele = e.cyTarget;
+  var ft = ele.data().freq_type
+  var parent = ele.neighborhood()[0]
+  console.log("bef",ele.data(),ft,parent.data())
+  expand(parent,ft)
+}
 
-function expand(ele){
+function expand(ele,filter_type){
   var source_id = ele.id();
   var tfs = ele.neighborhood(".freq_type")
   tfs.each(function(i,e){
     cy.remove(e);
   })
-  $.get( "/n?id="+source_id, function( data ) {
+  url = "/n?id="+source_id;
+  if (filter_type){
+    url = "/n?id="+source_id+"&type="+filter_type
+  }
+
+  $.get( url, function( data ) {
     //console.log(data)
-    eles = []
+    var eles = []
+    var fts = []
     $.each(data.nodes,function(i,n){
       //console.log(n.label,n.scaled_size,n)
       if (n.id == source_id) return null
+
       eles.push({ group: "nodes",data: n})
       if (n.p.type_freq == null){
         console.log( "no freq");
         return null
       }
       var tf = n.p.type_freq
+      
       $.each(JSON.parse(tf),function(k,v){
-        add_freq_types(eles,n,k,v)
+        console.log("key",k);
+        add_freq_types(fts,n,k,v);
       });
     })
-   $.each(data.edges,function(i,n){
+    $.each(data.edges,function(i,n){
       eles.push({ group: "edges",data: n,classes: 'autorotate'})
     })
-   eles =  cy.add(eles)
+   eles =  cy.add(eles);
+   fts = cy.add(fts);
+   fts.on("cxttap",bind_expand_ft)
    cy.layout(lhash[layout]);
-   eles.on('cxttap', bind_nodes);
+   eles.on('cxttap', bind_expand_nodes);
    add_qtip(eles);
   });
 }
@@ -167,7 +185,9 @@ function add_node(id){
   $.get( "/v?id="+id, function( data ) {
     node = dress_node(data);
     var x = cy.add(node);
-    x.on("cxttap",bind_nodes);
+    x.on("cxttap",bind_expand_nodes);
+    add_qtip([x]);
+    cy.layout(lhash[layout]);
   })
 }
 
@@ -210,14 +230,15 @@ function add_freq_types(eles,source,key,val){
   node.data.label = key + '(' + val + ')';
   node.classes = 'freq_type'
   node.data.faveColor= 'red'
-  //console.log('node',node)
-  eles.push( node)
-
+  node.data.freq_type = key
+  eles.push(node)
   eles.push(
    { 
     group: "edges",
     data: { id: "e"+target,source: source.id, target: target,label: "FT" }
    })
+  console.log("pushed",eles);
+  //return eles;
 }
 
 function add_qtip(eles){
@@ -236,7 +257,7 @@ function add_qtip(eles){
     }
   }
   $.each(eles,function(i,n){
-    props = n._private.data.p
+    props = n.data().p
     if (props){
       qt.content = JSON.stringify(props,null,"<br/>");
       n.qtip(qt)
@@ -338,10 +359,10 @@ cy = cytoscape({
     padding: 5
   }
 });
-  //var root_id = "tt1717152";
   var root_id = "8";
   var root = add_node(root_id);
-  //cy.$('node').on('cxttap',bind_nodes);
+  //add_qtip([root]);
+  //cy.layout(lhash[layout]);
   
   
 }); // on dom ready
