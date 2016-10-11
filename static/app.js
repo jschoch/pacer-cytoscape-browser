@@ -127,15 +127,25 @@ function dolay(lay){
 
 function bind_nodes(e){
   var ele = e.cyTarget;
-  expand(ele.id());
+  ele.data({_expanded: true});
+  
+  expand(ele);
+  console.log("right click", ele);
 }
 
-function expand(source_id){
+function expand(ele){
+  var source_id = ele.id();
+  var tfs = ele.neighborhood(".freq_type")
+  tfs.each(function(i,e){
+    cy.remove(e);
+  })
+  console.log("joy",tfs);
   $.get( "/n?id="+source_id, function( data ) {
-    console.log(data)
+    //console.log(data)
     eles = []
     $.each(data.nodes,function(i,n){
-      console.log(n.label,n.scaled_size,n)
+      //console.log(n.label,n.scaled_size,n)
+      if (n.id == source_id) return null
       eles.push({ group: "nodes",data: n})
       if (n.p.type_freq == null){
         console.log( "no freq");
@@ -155,24 +165,47 @@ function expand(source_id){
    add_qtip(eles);
   });
 }
+function default_node(){
+  return {
+    group: "nodes",
+    data: {
+      id: 'default',
+      _expanded: false,
+      size: 20,
+      scaled_size: 20,
+      faveColor: 'green',
+      label: "Default Label"
+      }
+  }
+}
+
+function remove_freq_type(source,key){
+  var s = cy.$("node[id = '"+ "freq_type:" + key + ":" + source.id +  "']")
+  var edges = s.connectedEdges(s)
+  edges.each(function(i,e){
+    var er = cy.remove(e)
+    console.log("edge r",er)
+  })
+  var r = cy.remove(s)
+  console.log('trying to remove',s,r)
+  console.log('edges',edges);
+}
 
 function add_freq_types(eles,source,key,val){
   var target = "freq_type:" + key + ":" + source.id
-  eles.push( {
-    group: "nodes",
-    data: {
-      id: target,
-      size: 20,
-      scaled_size: 20,
-      faveColor: 'red',
-      label: key + '(' + val + ')'
-      }
-    ,classes: 'freq_type'
-   })
+  var node = default_node();
+  node.data.id = target;
+  //node.data.label = target + "-|- " + key + '(' + val + ')';
+  node.data.label = key + '(' + val + ')';
+  node.classes = 'freq_type'
+  node.data.faveColor= 'red'
+  console.log('node',node)
+  eles.push( node)
+
   eles.push(
    { 
     group: "edges",
-    data: { source: source.id, target: target,label: "FT" }
+    data: { id: "e"+target,source: source.id, target: target,label: "FT" }
    })
 }
 
@@ -196,7 +229,7 @@ function add_qtip(eles){
     if (props){
       qt.content = JSON.stringify(props,null,"<br/>");
       n.qtip(qt)
-      console.log("props",props,qt,n);
+      //console.log("props",props,qt,n);
     }
   });
 };

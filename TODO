@@ -1,4 +1,8 @@
-add tooltip for nodes
+remove type_freq nodes on expand
+
+fix first node load
+
+add add root node input box
 
 add toggle to turn all edges off
 
