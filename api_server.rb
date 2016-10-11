@@ -54,6 +54,7 @@ end
 
 class Gr
   def self.dress(node)
+    return {label: "ERROR"} if node == nil
     size = node[:all_degrees] || 1
     id = node.getId
     scaled_size = ((size * 20) * 0.1)+20

@@ -1,7 +1,17 @@
 
 add add root node input box
 
+root node tooltip doesn't work
+
+click shoudl select node, put something with buttons so you can jump out to anoter window based on the selected node
+
 add search input and center on first matched node
+
+configure style per node type in massage.rb
+
+right click to expand only the selected freq_type
+
+crossfilter and or dc.js to apply filters by type/attribute
 
 add ability to load multiple graphs
 
